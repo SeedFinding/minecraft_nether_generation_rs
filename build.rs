@@ -8,5 +8,5 @@ fn main() {
     config.language = cbindgen::Language::C;
     cbindgen::generate_with_config(&crate_dir, config)
         .unwrap()
-        .write_to_file("target/minecraft_nether_gen_rs.h");
+        .write_to_file("target/release/minecraft_nether_gen_rs.h");
 }
