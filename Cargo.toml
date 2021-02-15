@@ -9,7 +9,7 @@ license="MIT"
 
 [dependencies]
 java_random = "0.1.6"
-noise_rs = "0.1.12"
+noise_rs = "0.1.13"
 
 [profile.dev]
 opt-level = 3
@@ -35,4 +35,4 @@ path="src/bin.rs"
 
 [lib]
 name="minecraft_nether_gen_rs"
-crate_type = ["dylib"]
+crate-types = ["rlib", "dylib", "bin"]

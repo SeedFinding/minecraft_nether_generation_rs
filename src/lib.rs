@@ -131,28 +131,28 @@ mod tests {
     use super::*;
 
     #[test]
-    unsafe fn gen1() {
+    fn gen1() {
         let mut nether = NetherGen::new(1);
-        assert_eq!(nether.get_final_biome(0, 0, 0), NetherBiomes::NetherWastes);
-        assert_eq!(nether.get_final_biome(100, 100, 100), NetherBiomes::SoulSandValley);
+        unsafe { assert_eq!(nether.get_final_biome(0, 0, 0), NetherBiomes::NetherWastes); }
+        unsafe { assert_eq!(nether.get_final_biome(100, 100, 100), NetherBiomes::SoulSandValley); }
     }
 
     #[test]
-    unsafe fn gen2() {
+    fn gen2() {
         let mut nether = NetherGen::new(171171);
-        let biome = nether.get_final_biome(19, 19, 19);
+        let biome = unsafe { nether.get_final_biome(19, 19, 19) };
         assert_eq!(biome, NetherBiomes::CrimsonForest);
     }
 
     #[test]
-    unsafe fn gen3() {
+    fn gen3() {
         let mut nether = NetherGen::new(171171);
-        let biome = nether.get_final_biome(92, 94, 0);
+        let biome = unsafe { nether.get_final_biome(92, 94, 0) };
         assert_eq!(biome, NetherBiomes::NetherWastes);
     }
 
     #[test]
-    unsafe fn gen_1_million() {
+    fn gen_1_million() {
         let mut nether = NetherGen::new(171171);
         let bound: i32 = 100;
         let low = 0;
@@ -160,7 +160,7 @@ mod tests {
         for x in low..bound {
             for y in low..bound {
                 for z in low..bound {
-                    score += nether.get_final_biome(x, y, z) as i32;
+                    unsafe { score += nether.get_final_biome(x, y, z) as i32; }
                 }
             }
         }
@@ -187,10 +187,21 @@ pub struct NetherGen {
     is_3d: bool,
 }
 
+#[no_mangle]
+pub extern "C" fn create_new_nether(seed: u64) -> NetherGen {
+    NetherGen::new(seed)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn get_biome(nether_gen: &mut NetherGen, x: i32, y: i32, z: i32) -> NetherBiomes {
+    nether_gen.get_final_biome(x, y, z)
+}
+
+
 impl NetherGen {
     // this implementation of the nether generation is only for 1.16+ as it is biomes only
-    #[no_mangle]
-    pub unsafe extern "C" fn new(mut seed: u64) -> Self {
+    // TODO fix the boxed into raw hiding (opaque pointer) to not use unsafe everywhere
+    pub fn new(mut seed: u64) -> Self {
         seed = seed & mask(48);
         let noise = Noise {
             temperature: DoublePerlinNoise::new(&mut Random::with_seed(seed), create_range(-7, -6)),
@@ -204,7 +215,6 @@ impl NetherGen {
         NetherGen {
             seed,
             _noise: Box::into_raw(boxed),
-
             is_3d: false,
         }
     }
@@ -224,8 +234,7 @@ impl NetherGen {
             .unwrap_or(NetherBiomes::TheVoid)
     }
 
-    #[no_mangle]
-    pub unsafe extern "C" fn get_final_biome(&mut self, x: i32, y: i32, z: i32) -> NetherBiomes {
+    pub unsafe fn get_final_biome(&mut self, x: i32, y: i32, z: i32) -> NetherBiomes {
         let (xx, yy, zz): (i32, i32, i32) = (self._noise).as_mut().unwrap().voronoi.get_fuzzy_positions(x, y, z);
         return self.get_biome(xx, yy, zz);
     }

@@ -16,7 +16,7 @@ fn main() {
 
 fn run_offset(seed: u64, offset_x: i32, offset_z: i32) {
     let now = SystemTime::now();
-    let mut gen: NetherGen = unsafe { NetherGen::new(seed) };
+    let mut gen: NetherGen =  NetherGen::new(seed) ;
     println!("{}", now.elapsed().expect("error").as_secs_f64());
     let mut som: i32 = 0;
 
@@ -29,7 +29,7 @@ fn run_offset(seed: u64, offset_x: i32, offset_z: i32) {
 }
 
 fn run_random(seed: u64) {
-    let mut gen: NetherGen = unsafe { NetherGen::new(seed) };
+    let mut gen: NetherGen =  NetherGen::new(seed) ;
     let mut som: i32 = 0;
     let mut r = Random::with_seed(1);
 
