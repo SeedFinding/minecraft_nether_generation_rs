@@ -1,6 +1,6 @@
 [package]
 name = "minecraft_nether_generation"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Neil <neilhube12@gmail.com>"]
 edition = "2018"
 description="The minecraft nether generation implemented in rust"
@@ -9,8 +9,7 @@ license="MIT"
 
 [dependencies]
 java_random = "0.1.6"
-intmap = "0.7.0"
-noise_rs = "0.1.9"
+noise_rs = "0.1.11"
 
 [profile.dev]
 opt-level = 3
@@ -27,5 +26,10 @@ harness = false
 
 
 [[bin]]
-name="temp"
+name="example"
 path="src/bin.rs"
+
+
+[lib]
+name="minecraft_nether_gen_rs"
+crate_type = ["dylib"]

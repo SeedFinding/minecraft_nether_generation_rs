@@ -2,7 +2,6 @@
 
 use core::fmt;
 
-use intmap::IntMap;
 use java_random::{mask, Random};
 use noise_rs::create_range;
 use noise_rs::double_perlin_noise::DoublePerlinNoise;
@@ -45,7 +44,7 @@ impl From<NetherBiomes> for BiomePoint {
             NetherBiomes::CrimsonForest => { CRIMSON_FOREST }
             NetherBiomes::WarpedForest => { WARPED_FOREST }
             NetherBiomes::BasaltDeltas => { BASALT_DELTAS }
-            NetherBiomes::TheVoid => {NETHER_WASTES}
+            NetherBiomes::TheVoid => { NETHER_WASTES }
         }
     }
 }
@@ -132,23 +131,38 @@ mod tests {
 
     #[test]
     fn gen1() {
-        let mut nether =NetherGen::new(1);
-        assert_eq!(nether.get_biome(0,0,0),NetherBiomes::NetherWastes);
+        let mut nether = NetherGen::new(1);
+        assert_eq!(nether.get_final_biome(0,0,0),NetherBiomes::NetherWastes);
+        assert_eq!(nether.get_final_biome(100, 100, 100), NetherBiomes::SoulSandValley);
     }
 
     #[test]
-    fn gen_1_million(){
-        let mut nether =NetherGen::new(1);
-        let bound:i32=40;
-        let mut score=0;
-        for x in 0..bound {
-            for y in 0..100 {
-                for z in 0..100 {
-                    score+=nether.get_biome(x,y,z) as i32;
+    fn gen2(){
+        let mut nether = NetherGen::new(171171);
+        let biome=nether.get_final_biome(19, 19, 19);
+        assert_eq!(biome,NetherBiomes::CrimsonForest);
+    }
+    #[test]
+    fn gen3(){
+        let mut nether = NetherGen::new(171171);
+        let biome=nether.get_final_biome(92, 94, 0);
+        assert_eq!(biome,NetherBiomes::NetherWastes);
+    }
+
+    #[test]
+    fn gen_1_million() {
+        let mut nether = NetherGen::new(171171);
+        let bound: i32 = 100;
+        let low=0;
+        let mut score = 0;
+        for x in low..bound {
+            for y in low..bound {
+                for z in low..bound {
+                    score += nether.get_final_biome(x, y, z) as i32;
                 }
             }
         }
-        dbg!(score);
+        assert_eq!(score,113015032)
     }
 }
 
@@ -162,6 +176,7 @@ pub struct NetherGen {
     weirdness: DoublePerlinNoise,
     voronoi: Voronoi,
     cache3d: HashMap<u128, NetherBiomes>,
+    is_3d: bool,
 }
 
 impl NetherGen {
@@ -170,32 +185,39 @@ impl NetherGen {
         seed = seed & mask(48);
         NetherGen {
             seed,
-            temperature: DoublePerlinNoise::new(Random::with_seed(seed), create_range(-7, -6)),
-            humidity: DoublePerlinNoise::new(Random::with_seed(seed + 1), create_range(-7, -6)),
-            altitude: DoublePerlinNoise::new(Random::with_seed(seed + 2), create_range(-7, -6)),
-            weirdness: DoublePerlinNoise::new(Random::with_seed(seed + 3), create_range(-7, -6)),
+            temperature: DoublePerlinNoise::new(&mut Random::with_seed(seed), create_range(-7, -6)),
+            humidity: DoublePerlinNoise::new(&mut Random::with_seed(seed + 1), create_range(-7, -6)),
+            altitude: DoublePerlinNoise::new(&mut Random::with_seed(seed + 2), create_range(-7, -6)),
+            weirdness: DoublePerlinNoise::new(&mut Random::with_seed(seed + 3), create_range(-7, -6)),
             voronoi: Voronoi::new(sha2long(seed) as i64),
-            cache3d:HashMap::new(),
+            cache3d: HashMap::new(),
+            is_3d: false,
         }
     }
-    fn _sample(&mut self, x: i32, y: i32, z: i32)-> NetherBiomes{
-        let t=self.temperature.sample(x as f64, y as f64, z as f64) as f32;
+    fn _sample(&mut self, x: i32, mut y: i32, z: i32) -> NetherBiomes {
+        y = if self.is_3d { y } else { 0 };
         let biome_point: BiomePoint = BiomePoint {
             biome: NetherBiomes::NetherWastes,
-            temperature:t ,
+            temperature: self.temperature.sample(x as f64, y as f64, z as f64) as f32,
             humidity: self.humidity.sample(x as f64, y as f64, z as f64) as f32,
             altitude: self.altitude.sample(x as f64, y as f64, z as f64) as f32,
             weirdness: self.weirdness.sample(x as f64, y as f64, z as f64) as f32,
             offset: 0.0f32,
         };
-
         DEFAULT_BIOMES.to_vec().iter().min_by(|&a, &b|
             a.distance_to(&biome_point).partial_cmp(&b.distance_to(&biome_point)).expect("Not infinity"))
             .map(|x| x.biome)
             .unwrap_or(NetherBiomes::TheVoid)
     }
+
+    pub fn get_final_biome(&mut self, x: i32, y: i32, z: i32) -> NetherBiomes {
+        let (xx, yy, zz): (i32, i32, i32) = self.voronoi.get_fuzzy_positions(x, y, z);
+        return self.get_biome(xx, yy, zz);
+    }
+
     pub fn get_biome(&mut self, x: i32, y: i32, z: i32) -> NetherBiomes {
-        let key: u128 = ((x as u128) << 64 | (y as u128) << 32 | (z as u128)) as u128;
+        // WARNING this is not the final method, use the one with voronoi
+        let key: u128 = (((x as u32) as u128) << 64 | ((y as u32) as u128) << 32 | ((z as u32) as u128)) as u128;
         let value = self.cache3d.get(&key);
         if let Some(res) = value {
             return *res;
