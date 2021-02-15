@@ -7,7 +7,7 @@ out.txt
 
 *.out
 *.egg-info
-
+*.so
 
 minecraft_nether_gen_rs/_native.py
 minecraft_nether_gen_rs/_native__ffi.py
