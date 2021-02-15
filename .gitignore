@@ -17,3 +17,5 @@ dist
 build
 *.pyd
 .eggs/milksnake-0.1.5-py3.9.egg/EGG-INFO/
+
+examples/example

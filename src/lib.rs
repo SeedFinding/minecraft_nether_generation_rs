@@ -188,8 +188,8 @@ pub struct NetherGen {
 }
 
 #[no_mangle]
-pub extern "C" fn create_new_nether(seed: u64) -> NetherGen {
-    NetherGen::new(seed)
+pub extern "C" fn create_new_nether(seed: u64) -> Box<NetherGen> {
+    Box::new(NetherGen::new(seed))
 }
 
 #[no_mangle]
