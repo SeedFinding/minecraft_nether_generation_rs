@@ -1,0 +1,8 @@
+/target
+Cargo.lock
+
+.idea/
+
+out.txt
+
+*.out

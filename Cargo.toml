@@ -1,0 +1,31 @@
+[package]
+name = "minecraft_nether_generation"
+version = "0.1.0"
+authors = ["Neil <neilhube12@gmail.com>"]
+edition = "2018"
+description="The minecraft nether generation implemented in rust"
+categories=["algorithms","data-structures"]
+license="MIT"
+
+[dependencies]
+java_random = "0.1.6"
+intmap = "0.7.0"
+noise_rs = "0.1.9"
+
+[profile.dev]
+opt-level = 3
+
+[profile.release]
+opt-level = 3
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "bench"
+harness = false
+
+
+[[bin]]
+name="temp"
+path="src/bin.rs"
