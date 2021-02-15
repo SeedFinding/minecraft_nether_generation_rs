@@ -101,6 +101,7 @@ const BASALT_DELTAS: BiomePoint = BiomePoint {
 
 const DEFAULT_BIOMES: [BiomePoint; 5] = [NETHER_WASTES, SOUL_SAND_VALLEY, CRIMSON_FOREST, WARPED_FOREST, BASALT_DELTAS];
 
+#[repr(u32)]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum NetherBiomes {
     NetherWastes = 8,
@@ -130,30 +131,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn gen1() {
+    unsafe fn gen1() {
         let mut nether = NetherGen::new(1);
-        assert_eq!(nether.get_final_biome(0,0,0),NetherBiomes::NetherWastes);
+        assert_eq!(nether.get_final_biome(0, 0, 0), NetherBiomes::NetherWastes);
         assert_eq!(nether.get_final_biome(100, 100, 100), NetherBiomes::SoulSandValley);
     }
 
     #[test]
-    fn gen2(){
+    unsafe fn gen2() {
         let mut nether = NetherGen::new(171171);
-        let biome=nether.get_final_biome(19, 19, 19);
-        assert_eq!(biome,NetherBiomes::CrimsonForest);
-    }
-    #[test]
-    fn gen3(){
-        let mut nether = NetherGen::new(171171);
-        let biome=nether.get_final_biome(92, 94, 0);
-        assert_eq!(biome,NetherBiomes::NetherWastes);
+        let biome = nether.get_final_biome(19, 19, 19);
+        assert_eq!(biome, NetherBiomes::CrimsonForest);
     }
 
     #[test]
-    fn gen_1_million() {
+    unsafe fn gen3() {
+        let mut nether = NetherGen::new(171171);
+        let biome = nether.get_final_biome(92, 94, 0);
+        assert_eq!(biome, NetherBiomes::NetherWastes);
+    }
+
+    #[test]
+    unsafe fn gen_1_million() {
         let mut nether = NetherGen::new(171171);
         let bound: i32 = 100;
-        let low=0;
+        let low = 0;
         let mut score = 0;
         for x in low..bound {
             for y in low..bound {
@@ -162,46 +164,58 @@ mod tests {
                 }
             }
         }
-        assert_eq!(score,113015032)
+        assert_eq!(score, 113015032)
     }
 }
 
-
+/// <div rustbindgen hide></div>
 #[derive(Clone)]
-pub struct NetherGen {
-    seed: u64,
+struct Noise {
     temperature: DoublePerlinNoise,
     humidity: DoublePerlinNoise,
     altitude: DoublePerlinNoise,
     weirdness: DoublePerlinNoise,
     voronoi: Voronoi,
     cache3d: HashMap<u128, NetherBiomes>,
+}
+
+#[repr(C)]
+#[derive(Clone)]
+pub struct NetherGen {
+    seed: u64,
+    _noise: *mut Noise,
     is_3d: bool,
 }
 
 impl NetherGen {
     // this implementation of the nether generation is only for 1.16+ as it is biomes only
-    pub fn new(mut seed: u64) -> Self {
+    #[no_mangle]
+    pub unsafe extern "C" fn new(mut seed: u64) -> Self {
         seed = seed & mask(48);
-        NetherGen {
-            seed,
+        let noise = Noise {
             temperature: DoublePerlinNoise::new(&mut Random::with_seed(seed), create_range(-7, -6)),
             humidity: DoublePerlinNoise::new(&mut Random::with_seed(seed + 1), create_range(-7, -6)),
             altitude: DoublePerlinNoise::new(&mut Random::with_seed(seed + 2), create_range(-7, -6)),
             weirdness: DoublePerlinNoise::new(&mut Random::with_seed(seed + 3), create_range(-7, -6)),
             voronoi: Voronoi::new(sha2long(seed) as i64),
             cache3d: HashMap::new(),
+        };
+        let boxed: Box<Noise> = Box::new(noise);
+        NetherGen {
+            seed,
+            _noise: Box::into_raw(boxed),
+
             is_3d: false,
         }
     }
-    fn _sample(&mut self, x: i32, mut y: i32, z: i32) -> NetherBiomes {
+    unsafe fn _sample(&mut self, x: i32, mut y: i32, z: i32) -> NetherBiomes {
         y = if self.is_3d { y } else { 0 };
         let biome_point: BiomePoint = BiomePoint {
             biome: NetherBiomes::NetherWastes,
-            temperature: self.temperature.sample(x as f64, y as f64, z as f64) as f32,
-            humidity: self.humidity.sample(x as f64, y as f64, z as f64) as f32,
-            altitude: self.altitude.sample(x as f64, y as f64, z as f64) as f32,
-            weirdness: self.weirdness.sample(x as f64, y as f64, z as f64) as f32,
+            temperature: (&*self._noise).temperature.sample(x as f64, y as f64, z as f64) as f32,
+            humidity: (&*self._noise).humidity.sample(x as f64, y as f64, z as f64) as f32,
+            altitude: (&*self._noise).altitude.sample(x as f64, y as f64, z as f64) as f32,
+            weirdness: (&*self._noise).weirdness.sample(x as f64, y as f64, z as f64) as f32,
             offset: 0.0f32,
         };
         DEFAULT_BIOMES.to_vec().iter().min_by(|&a, &b|
@@ -210,20 +224,21 @@ impl NetherGen {
             .unwrap_or(NetherBiomes::TheVoid)
     }
 
-    pub fn get_final_biome(&mut self, x: i32, y: i32, z: i32) -> NetherBiomes {
-        let (xx, yy, zz): (i32, i32, i32) = self.voronoi.get_fuzzy_positions(x, y, z);
+    #[no_mangle]
+    pub unsafe extern "C" fn get_final_biome(&mut self, x: i32, y: i32, z: i32) -> NetherBiomes {
+        let (xx, yy, zz): (i32, i32, i32) = (self._noise).as_mut().unwrap().voronoi.get_fuzzy_positions(x, y, z);
         return self.get_biome(xx, yy, zz);
     }
 
-    pub fn get_biome(&mut self, x: i32, y: i32, z: i32) -> NetherBiomes {
+    pub unsafe fn get_biome(&mut self, x: i32, y: i32, z: i32) -> NetherBiomes {
         // WARNING this is not the final method, use the one with voronoi
         let key: u128 = (((x as u32) as u128) << 64 | ((y as u32) as u128) << 32 | ((z as u32) as u128)) as u128;
-        let value = self.cache3d.get(&key);
+        let value = (*self._noise).cache3d.get(&key);
         if let Some(res) = value {
             return *res;
         }
         let value = self._sample(x, y, z);
-        self.cache3d.insert(key, value);
+        (*self._noise).cache3d.insert(key, value);
         return value;
     }
 }
