@@ -11,9 +11,8 @@ Third thing: Install python bindings (optional): `python3 setup.py install --use
 Fourth thing: Use Rust:
 ```rust
 let mut nether = NetherGen::new(171171);
-let biome = unsafe { nether.get_final_biome(19, 19, 19) };
+let biome = nether.get_final_biome(19, 19, 19);
 ```
-( I am so sorry about the unsafe, I promise I will fix it, for now it's due to the C stuff on top)
 
 Fifth thing: Use C/C++: You have a shared library (.so/.dll) in target/release and a header file in target, you have two functions, just use them like any other functions ;) see example.c
 ```c

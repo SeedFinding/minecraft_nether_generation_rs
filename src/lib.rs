@@ -133,21 +133,21 @@ mod tests {
     #[test]
     fn gen1() {
         let mut nether = NetherGen::new(1);
-        unsafe { assert_eq!(nether.get_final_biome(0, 0, 0), NetherBiomes::NetherWastes); }
-        unsafe { assert_eq!(nether.get_final_biome(100, 100, 100), NetherBiomes::SoulSandValley); }
+        assert_eq!(nether.get_final_biome(0, 0, 0), NetherBiomes::NetherWastes);
+        assert_eq!(nether.get_final_biome(100, 100, 100), NetherBiomes::SoulSandValley);
     }
 
     #[test]
     fn gen2() {
         let mut nether = NetherGen::new(171171);
-        let biome = unsafe { nether.get_final_biome(19, 19, 19) };
+        let biome = nether.get_final_biome(19, 19, 19);
         assert_eq!(biome, NetherBiomes::CrimsonForest);
     }
 
     #[test]
     fn gen3() {
         let mut nether = NetherGen::new(171171);
-        let biome = unsafe { nether.get_final_biome(92, 94, 0) };
+        let biome = nether.get_final_biome(92, 94, 0);
         assert_eq!(biome, NetherBiomes::NetherWastes);
     }
 
@@ -160,7 +160,7 @@ mod tests {
         for x in low..bound {
             for y in low..bound {
                 for z in low..bound {
-                    unsafe { score += nether.get_final_biome(x, y, z) as i32; }
+                    score += nether.get_final_biome(x, y, z) as i32;
                 }
             }
         }
@@ -183,7 +183,7 @@ struct Noise {
 #[derive(Clone)]
 pub struct NetherGen {
     seed: u64,
-    _noise: *mut Noise,
+    _noise: Box<Noise>, // this because in C we can n
     is_3d: bool,
 }
 
@@ -214,18 +214,18 @@ impl NetherGen {
         let boxed: Box<Noise> = Box::new(noise);
         NetherGen {
             seed,
-            _noise: Box::into_raw(boxed),
+            _noise: boxed,
             is_3d: false,
         }
     }
-    unsafe fn _sample(&mut self, x: i32, mut y: i32, z: i32) -> NetherBiomes {
+    fn _sample(&mut self, x: i32, mut y: i32, z: i32) -> NetherBiomes {
         y = if self.is_3d { y } else { 0 };
         let biome_point: BiomePoint = BiomePoint {
             biome: NetherBiomes::NetherWastes,
-            temperature: (&*self._noise).temperature.sample(x as f64, y as f64, z as f64) as f32,
-            humidity: (&*self._noise).humidity.sample(x as f64, y as f64, z as f64) as f32,
-            altitude: (&*self._noise).altitude.sample(x as f64, y as f64, z as f64) as f32,
-            weirdness: (&*self._noise).weirdness.sample(x as f64, y as f64, z as f64) as f32,
+            temperature:  (*self._noise).temperature.sample(x as f64, y as f64, z as f64) as f32 ,
+            humidity:   (*self._noise).humidity.sample(x as f64, y as f64, z as f64) as f32 ,
+            altitude:   (*self._noise).altitude.sample(x as f64, y as f64, z as f64) as f32 ,
+            weirdness:   (*self._noise).weirdness.sample(x as f64, y as f64, z as f64) as f32 ,
             offset: 0.0f32,
         };
         DEFAULT_BIOMES.to_vec().iter().min_by(|&a, &b|
@@ -234,20 +234,20 @@ impl NetherGen {
             .unwrap_or(NetherBiomes::TheVoid)
     }
 
-    pub unsafe fn get_final_biome(&mut self, x: i32, y: i32, z: i32) -> NetherBiomes {
-        let (xx, yy, zz): (i32, i32, i32) = (self._noise).as_mut().unwrap().voronoi.get_fuzzy_positions(x, y, z);
+    pub fn get_final_biome(&mut self, x: i32, y: i32, z: i32) -> NetherBiomes {
+        let (xx, yy, zz): (i32, i32, i32) =  self._noise.voronoi.get_fuzzy_positions(x, y, z) ;
         return self.get_biome(xx, yy, zz);
     }
 
-    pub unsafe fn get_biome(&mut self, x: i32, y: i32, z: i32) -> NetherBiomes {
+    pub fn get_biome(&mut self, x: i32, y: i32, z: i32) -> NetherBiomes {
         // WARNING this is not the final method, use the one with voronoi
         let key: u128 = (((x as u32) as u128) << 64 | ((y as u32) as u128) << 32 | ((z as u32) as u128)) as u128;
-        let value = (*self._noise).cache3d.get(&key);
+        let value =  (*self._noise).cache3d.get(&key) ;
         if let Some(res) = value {
             return *res;
         }
         let value = self._sample(x, y, z);
-        (*self._noise).cache3d.insert(key, value);
+        (*self._noise).cache3d.insert(key, value) ;
         return value;
     }
 }

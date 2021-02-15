@@ -5,7 +5,7 @@ use minecraft_nether_gen_rs::{NetherGen, NetherBiomes};
 
 fn gen_end(seed: u64, x:i32, z:i32) -> NetherBiomes {
     let mut gen: NetherGen = NetherGen::new(seed);
-    unsafe { gen.get_biome(x, 0, z) }
+    gen.get_biome(x, 0, z)
 }
 
 fn gen1million(seed: u64, offset_x:i32, offset_z:i32) {
@@ -13,7 +13,7 @@ fn gen1million(seed: u64, offset_x:i32, offset_z:i32) {
     let mut f = BufWriter::new(File::create("out.txt").unwrap());
     for x in 0..1000 {
         for z in 0..1000 {
-            unsafe { write!(f, "{} ", gen.get_biome(offset_x + x, 0, offset_z + z) as u8).expect("Failed to write file"); }
+             write!(f, "{} ", gen.get_biome(offset_x + x, 0, offset_z + z) as u8).expect("Failed to write file");
         }
         writeln!(f).expect("Failed to write newline to file");
         f.flush().expect("fail to flush");

@@ -22,7 +22,7 @@ fn run_offset(seed: u64, offset_x: i32, offset_z: i32) {
 
     for x in 0..1000 {
         for z in 0..1000 {
-            unsafe { som = som.wrapping_add(gen.get_final_biome(x + offset_x, 0, z + offset_z) as i32); }
+             som = som.wrapping_add(gen.get_final_biome(x + offset_x, 0, z + offset_z) as i32);
         }
     }
     println!("{}", som);
@@ -35,7 +35,7 @@ fn run_random(seed: u64) {
 
     for _ in 0..100 {
         for _ in 0..100 {
-            unsafe { som = som.wrapping_add(gen.get_final_biome(r.next_int_n(1000), 0, r.next_int_n(1000)) as i32); }
+             som = som.wrapping_add(gen.get_final_biome(r.next_int_n(1000), 0, r.next_int_n(1000)) as i32);
         }
     }
     println!("{}", som);
