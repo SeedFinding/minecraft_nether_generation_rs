@@ -193,6 +193,11 @@ pub extern "C" fn create_new_nether(seed: u64) -> Box<NetherGen> {
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn delete(nether_gen: &mut NetherGen) -> () {
+    std::mem::drop(Box::from_raw(nether_gen));
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn get_biome(nether_gen: &mut NetherGen, x: i32, y: i32, z: i32) -> NetherBiomes {
     nether_gen.get_final_biome(x, y, z)
 }

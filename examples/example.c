@@ -12,4 +12,5 @@ int main(){
     printf("%llu\n",sizeof (netherGen->seed));
     printf("%llu\n",sizeof (netherGen->_noise));
     printf("%llu\n",sizeof (netherGen->is_3d));
+    delete(netherGen);
 }

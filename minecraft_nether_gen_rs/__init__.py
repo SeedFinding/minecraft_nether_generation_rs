@@ -31,3 +31,6 @@ def create_new_nether(seed) -> POINTER(NetherGen):
 
 def get_biome(nether_gen: POINTER(NetherGen), x: c_int32, y: c_int32, z: c_int32) -> NetherBiomes:
     return _native.lib.get_biome(nether_gen, x, y, z)
+
+def delete(nether_gen: POINTER(NetherGen)):
+    return _native.lib.delete(nether_gen)
