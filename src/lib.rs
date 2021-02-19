@@ -207,13 +207,14 @@ impl NetherGen {
     // this implementation of the nether generation is only for 1.16+ as it is biomes only
     // TODO fix the boxed into raw hiding (opaque pointer) to not use unsafe everywhere
     pub fn new(mut seed: u64) -> Self {
+        let hashed_seed:i64=sha2long(seed) as i64;
         seed = seed & mask(48);
         let noise = Noise {
             temperature: DoublePerlinNoise::new(&mut Random::with_seed(seed), create_range(-7, -6)),
             humidity: DoublePerlinNoise::new(&mut Random::with_seed(seed + 1), create_range(-7, -6)),
             altitude: DoublePerlinNoise::new(&mut Random::with_seed(seed + 2), create_range(-7, -6)),
             weirdness: DoublePerlinNoise::new(&mut Random::with_seed(seed + 3), create_range(-7, -6)),
-            voronoi: Voronoi::new(sha2long(seed) as i64),
+            voronoi: Voronoi::new(hashed_seed),
             cache3d: HashMap::new(),
         };
         let boxed: Box<Noise> = Box::new(noise);

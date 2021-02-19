@@ -1,6 +1,6 @@
 [package]
 name = "minecraft_nether_generation"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Neil <neilhube12@gmail.com>"]
 edition = "2018"
 description = "The minecraft nether generation implemented in rust"
