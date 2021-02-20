@@ -8,6 +8,7 @@ use noise_rs::double_perlin_noise::DoublePerlinNoise;
 use noise_rs::math::sha2long;
 use noise_rs::voronoi::Voronoi;
 use std::collections::HashMap;
+use wasm_bindgen::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BiomePoint {
@@ -102,6 +103,7 @@ const BASALT_DELTAS: BiomePoint = BiomePoint {
 const DEFAULT_BIOMES: [BiomePoint; 5] = [NETHER_WASTES, SOUL_SAND_VALLEY, CRIMSON_FOREST, WARPED_FOREST, BASALT_DELTAS];
 
 #[repr(u32)]
+#[wasm_bindgen]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum NetherBiomes {
     NetherWastes = 8,
@@ -180,6 +182,7 @@ struct Noise {
 }
 
 #[repr(C)]
+#[wasm_bindgen]
 #[derive(Clone)]
 pub struct NetherGen {
     seed: u64,
@@ -187,17 +190,17 @@ pub struct NetherGen {
     is_3d: bool,
 }
 
-#[no_mangle]
-pub extern "C" fn create_new_nether(seed: u64) -> Box<NetherGen> {
-    Box::new(NetherGen::new(seed))
+#[wasm_bindgen]
+pub extern "C" fn create_new_nether(seed: u64) -> *mut NetherGen {
+    return Box::into_raw(Box::new(NetherGen::new(seed)));
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn delete(nether_gen: &mut NetherGen) -> () {
-    std::mem::drop(Box::from_raw(nether_gen));
+#[wasm_bindgen]
+pub extern "C" fn delete_nether(nether_gen: *mut NetherGen) -> () {
+    std::mem::drop(nether_gen);
 }
 
-#[no_mangle]
+#[wasm_bindgen]
 pub extern "C" fn get_biome(nether_gen: &mut NetherGen, x: i32, y: i32, z: i32) -> NetherBiomes {
     nether_gen.get_final_biome(x, y, z)
 }
