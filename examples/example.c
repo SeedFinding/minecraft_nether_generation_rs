@@ -12,5 +12,9 @@ int main(){
     printf("%llu\n",sizeof (netherGen->seed));
     printf("%llu\n",sizeof (netherGen->_noise));
     printf("%llu\n",sizeof (netherGen->is_3d));
+    int chunkX=-3;
+    int chunkZ=0;
+    NetherBiomes biome_structure=get_biome_structure(netherGen,chunkX,chunkZ);
+    NetherBiomes biome_decorator=get_biome_decorator(netherGen,chunkX,chunkZ);
     delete(netherGen);
 }

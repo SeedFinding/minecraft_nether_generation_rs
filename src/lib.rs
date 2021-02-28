@@ -129,6 +129,7 @@ impl fmt::Display for NetherBiomes {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::NetherBiomes::SoulSandValley;
 
     #[test]
     fn gen1() {
@@ -166,6 +167,12 @@ mod tests {
         }
         assert_eq!(score, 113015032)
     }
+
+    #[test]
+    fn test_structure() {
+        let mut nether = NetherGen::new(5772394932603802938);
+        assert_eq!(nether.get_biome((-3<<2)+2,0,(0<<2)+2),SoulSandValley);
+    }
 }
 
 /// <div rustbindgen hide></div>
@@ -200,6 +207,16 @@ pub unsafe extern "C" fn delete(nether_gen: &mut NetherGen) -> () {
 #[no_mangle]
 pub extern "C" fn get_biome(nether_gen: &mut NetherGen, x: i32, y: i32, z: i32) -> NetherBiomes {
     nether_gen.get_final_biome(x, y, z)
+}
+
+#[no_mangle]
+pub extern "C" fn get_biome_structure(nether_gen: &mut NetherGen, chunk_x: i32, chunk_z: i32) -> NetherBiomes {
+    nether_gen.get_biome((chunk_x<<2)+2, 0, (chunk_z<<2)+2)
+}
+
+#[no_mangle]
+pub extern "C" fn get_biome_decorator(nether_gen: &mut NetherGen, chunk_x: i32,  chunk_z: i32) -> NetherBiomes {
+    nether_gen.get_biome((chunk_x<<2)+2, 2, (chunk_z<<2)+2)
 }
 
 

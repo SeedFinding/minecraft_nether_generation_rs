@@ -30,4 +30,4 @@ NetherBiomes get_biome(struct NetherGen *nether_gen, int32_t x, int32_t y, int32
 
 Six thing (you can also run that in go, ruby and much more, rust/cbindings are awesome !)
 
-
+Don't forget that structure use chunkX and chunkZ and that get_biome_structure(gen,chunkX,chunkZ)/get_biome_decorator(gen,chunkX,chunkZ) exist.
