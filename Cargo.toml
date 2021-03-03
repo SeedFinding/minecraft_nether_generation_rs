@@ -1,6 +1,6 @@
 [package]
 name = "minecraft_nether_generation"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["Neil <neilhube12@gmail.com>"]
 edition = "2018"
 description = "The minecraft nether generation implemented in rust"
@@ -33,4 +33,4 @@ path = "src/bin.rs"
 
 [lib]
 name = "minecraft_nether_gen_rs"
-crate-type = ["cdylib", "rlib"] # cdylib to make the shared library and rlib to link against bin.rs
+crate-type = ["cdylib", "rlib", "staticlib"] # cdylib to make the shared library and rlib to link against bin.rs
