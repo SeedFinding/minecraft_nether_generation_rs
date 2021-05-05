@@ -1,6 +1,6 @@
 [package]
 name = "minecraft_nether_generation"
-version = "0.3.4"
+version = "0.3.5"
 authors = ["Neil <neilhube12@gmail.com>"]
 edition = "2018"
 description = "The minecraft nether generation implemented in rust"
@@ -9,7 +9,7 @@ license = "MIT"
 
 [dependencies]
 java_random = { version = "0.1.7", default-features = false }
-noise_rs = { version = "0.1.15", default-features = false }
+noise_rs = { version = "0.1.16", default-features = false }
 
 # We don't need those dependencies here
 #[features]

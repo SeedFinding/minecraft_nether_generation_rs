@@ -2,7 +2,7 @@
 
 You can run this in C, C++, Rust and Python.
 
-Warning you need rust 1.43.0+ because of the use of f64::MAX and u128::MAX (const_fn was disabled for this crate)
+Warning you need rust 1.40.0+ (due to non exhaustive memchr #45394), const_fn was disabled for this crate.
 
 First thing: Get rust: https://rustup.rs
 
