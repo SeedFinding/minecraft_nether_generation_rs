@@ -1,6 +1,6 @@
 [package]
 name = "minecraft_nether_generation"
-version = "0.3.3"
+version = "0.3.4"
 authors = ["Neil <neilhube12@gmail.com>"]
 edition = "2018"
 description = "The minecraft nether generation implemented in rust"
@@ -8,8 +8,13 @@ categories = ["algorithms", "data-structures"]
 license = "MIT"
 
 [dependencies]
-java_random = "0.1.6"
-noise_rs = "0.1.13"
+java_random = { version = "0.1.7", default-features = false }
+noise_rs = { version = "0.1.15", default-features = false }
+
+# We don't need those dependencies here
+#[features]
+#default = ["const_fn"]
+#const_fn = ["java_random/const_fn", "noise_rs/const_fn"]
 
 [profile.dev]
 opt-level = 3
